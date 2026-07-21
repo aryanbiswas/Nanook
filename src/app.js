@@ -86,9 +86,20 @@ class TitanBot extends Client {
 
       initializeMusic(this);
       
-      startupLog('Logging into Discord...');
-      await this.login(this.config.bot.token);
-      startupLog('Discord login successful');
+      startupLog(`Token exists: ${!!this.config.bot.token}`);
+startupLog(`Token length: ${this.config.bot.token?.length || 0}`);
+startupLog(`Client ID: ${this.config.bot.clientId}`);
+
+startupLog('Logging into Discord...');
+
+try {
+  await this.login(this.config.bot.token);
+  startupLog('Discord login successful');
+} catch (err) {
+  console.error('LOGIN FAILED:', err);
+  logger.error('LOGIN FAILED:', err);
+  throw err;
+}
       
       startupLog('Registering slash commands globally...');
       await this.registerCommands();
