@@ -93,7 +93,16 @@ startupLog(`Client ID: ${this.config.bot.clientId}`);
 startupLog('Logging into Discord...');
 
 try {
-  await this.login(this.config.bot.token);
+  const loginPromise = this.login(this.config.bot.token);
+
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => {
+      reject(new Error("Discord login timed out after 30 seconds"));
+    }, 30000);
+  });
+
+  await Promise.race([loginPromise, timeoutPromise]);
+
   startupLog('Discord login successful');
 } catch (err) {
   console.error('LOGIN FAILED:', err);
