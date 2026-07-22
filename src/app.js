@@ -112,17 +112,12 @@ Select a team below to contact the staff`
       new ActionRowBuilder().addComponents(menu)
     ]
   });
-} catch(error) {
+} catch (error) {
   logger.error("Failed sending modmail menu:", error);
 }
 
-    embeds: [embed],
-    components: [
-      new ActionRowBuilder().addComponents(menu)
-    ]
-  });
-
 });
+
 
 } // <-- this closes constructor()
 
