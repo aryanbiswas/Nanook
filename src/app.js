@@ -66,7 +66,16 @@ this.db = null;
       // User already has an open ticket
 if (this.tickets.has(message.author.id)) {
     const channelId = this.tickets.get(message.author.id);
-    const channel = await this.channels.fetch(channelId);
+    let channel;
+
+try {
+    channel = await this.channels.fetch(channelId);
+} catch (error) {
+    logger.error("Failed fetching modmail channel:", error);
+    this.tickets.delete(message.author.id);
+    return;
+}
+
 
     if (channel) {
         await channel.send({
@@ -146,12 +155,10 @@ Select a team below to contact the staff`
 
     if (!message.guild) return;
 
-    if (!message.channel.name.startsWith("modmail-")) return;
+    const ticketUser = [...this.tickets.entries()]
+    .find(([userId, channelId]) => channelId === message.channel.id);
 
-    const userId = [...this.tickets.entries()]
-    .find(([id, channelId]) => channelId === message.channel.id)?.[0];
-
-if (!userId) return;
+if (!ticketUser) return;
 
 
 try {
