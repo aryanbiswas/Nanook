@@ -97,7 +97,7 @@ try {
 
 
   const embed = new EmbedBuilder()
-    .setColor("#5865F2")
+    .setColor("#F2530A")
     .setTitle("Mod Mail - Contact Selection")
     .setDescription(
 `Please select who you would like to contact:
