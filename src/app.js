@@ -156,10 +156,11 @@ Select a team below to contact the staff`
     if (!message.guild) return;
 
     const ticketUser = [...this.tickets.entries()]
-    .find(([userId, channelId]) => channelId === message.channel.id);
+.find(([userId, channelId]) => channelId === message.channel.id);
 
 if (!ticketUser) return;
 
+const userId = ticketUser[0];
 
 try {
     const user = await this.users.fetch(userId);
