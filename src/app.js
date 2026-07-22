@@ -127,7 +127,7 @@ async setupModmail() {
 
     const team = interaction.values[0];
 
-    const guild = this.guilds.cache.get("YOUR_SERVER_ID");
+    const guild = this.guilds.cache.get("1522634540223561768");
 
 
     if (!guild) {
@@ -143,22 +143,41 @@ async setupModmail() {
       type: ChannelType.GuildText,
 
       permissionOverwrites: [
-        {
-          id: guild.roles.everyone.id,
-          deny: [
-            PermissionsBitField.Flags.ViewChannel
-          ]
-        },
+  {
+    id: guild.roles.everyone.id,
+    deny: [
+      PermissionsBitField.Flags.ViewChannel
+    ]
+  },
 
-        {
-          id: interaction.user.id,
-          allow: [
-            PermissionsBitField.Flags.ViewChannel,
-            PermissionsBitField.Flags.SendMessages
-          ]
-        }
-      ]
-    });
+  // User who opened the ticket
+  {
+    id: interaction.user.id,
+    allow: [
+      PermissionsBitField.Flags.ViewChannel,
+      PermissionsBitField.Flags.SendMessages
+    ]
+  },
+
+  // Admins
+  {
+    id: "1527965125879795803",
+    allow: [
+      PermissionsBitField.Flags.ViewChannel,
+      PermissionsBitField.Flags.SendMessages
+    ]
+  },
+
+  // Moderators
+  {
+    id: "1523251341277925407",
+    allow: [
+      PermissionsBitField.Flags.ViewChannel,
+      PermissionsBitField.Flags.SendMessages
+    ]
+  }
+]
+
 
 
     this.tickets.set(
@@ -227,6 +246,8 @@ async start() {
       await this.loadHandlers();
       startupLog('Handlers loaded');
 
+    await this.setupModmail();
+    
       initializeMusic(this);
       
       startupLog(`Token exists: ${!!this.config.bot.token}`);
