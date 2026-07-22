@@ -1,5 +1,17 @@
 ﻿import 'dotenv/config';
-import { Client, Collection, GatewayIntentBits, Partials } from 'discord.js';
+import {
+  Client,
+  Collection,
+  GatewayIntentBits,
+  Partials,
+  EmbedBuilder,
+  ActionRowBuilder,
+  StringSelectMenuBuilder,
+  ChannelType,
+  PermissionsBitField,
+  ButtonBuilder,
+  ButtonStyle
+} from 'discord.js';
 import { REST } from '@discordjs/rest';
 import express from 'express';
 import cron from 'node-cron';
@@ -42,31 +54,141 @@ class TitanBot extends Client {
     this.selectMenus = new Collection();
     this.modals = new Collection();
     this.cooldowns = new Collection();
-    this.db = null;
+this.tickets = new Map();
+this.db = null;
     this.rest = new REST({ version: '10' }).setToken(config.bot.token);
     this.on("messageCreate", async (message) => {
   if (message.author.bot) return;
-  if (message.guild) return;
 
-  const channel = await this.channels.fetch("1529351905040662578");
+  // Only handle DMs
+  if (message.channel.type !== ChannelType.DM) return;
 
-  await channel.send({
-    content:
-      `📩 **New DM**\n` +
-      `**User:** ${message.author.tag} (${message.author.id})\n\n` +
-      `${message.content || "*No text message*"}`
+
+  const embed = new EmbedBuilder()
+    .setColor("#5865F2")
+    .setTitle("Mod Mail - Contact Selection")
+    .setDescription(
+`Please select who you would like to contact:
+
+👤 **Admin**
+• Contacting an admin
+• Claiming event rewards
+• Partnerships
+• Reporting staff
+
+🛡️ **Moderator**
+• Reporting a problem
+• Reporting someone for breaking rules
+
+
+Select a team below to contact the staff`
+    )
+    .setTimestamp();
+
+
+  const menu = new StringSelectMenuBuilder()
+    .setCustomId("modmail_team")
+    .setPlaceholder("Select a team")
+    .addOptions([
+      {
+        label: "Admin",
+        description: "Contact an admin",
+        value: "admin",
+        emoji: "👤"
+      },
+      {
+        label: "Moderator",
+        description: "Contact moderators",
+        value: "moderator",
+        emoji: "🛡️"
+      }
+    ]);
+
+
+  await message.channel.send({
+    embeds: [embed],
+    components: [
+      new ActionRowBuilder().addComponents(menu)
+    ]
   });
 
-  if (message.attachments.size > 0) {
-    message.attachments.forEach(async (attachment) => {
-      await channel.send(attachment.url);
-    });
-  }
-
-  await message.reply("Your message has been received.");
 });
 
 } // <-- this closes constructor()
+
+async setupModmail() {
+
+  this.on("interactionCreate", async (interaction) => {
+
+    if (!interaction.isStringSelectMenu()) return;
+
+    if (interaction.customId !== "modmail_team") return;
+
+
+    const team = interaction.values[0];
+
+    const guild = this.guilds.cache.get("YOUR_SERVER_ID");
+
+
+    if (!guild) {
+      return interaction.reply({
+        content: "Server not found.",
+        ephemeral: true
+      });
+    }
+
+
+    const channel = await guild.channels.create({
+      name: `modmail-${interaction.user.username}`,
+      type: ChannelType.GuildText,
+
+      permissionOverwrites: [
+        {
+          id: guild.roles.everyone.id,
+          deny: [
+            PermissionsBitField.Flags.ViewChannel
+          ]
+        },
+
+        {
+          id: interaction.user.id,
+          allow: [
+            PermissionsBitField.Flags.ViewChannel,
+            PermissionsBitField.Flags.SendMessages
+          ]
+        }
+      ]
+    });
+
+
+    this.tickets.set(
+      interaction.user.id,
+      channel.id
+    );
+
+
+    await channel.send({
+      embeds: [
+        new EmbedBuilder()
+          .setColor("#5865F2")
+          .setTitle("New Mod Mail")
+          .setDescription(
+            `User: <@${interaction.user.id}>\n` +
+            `Department: **${team}**`
+          )
+          .setTimestamp()
+      ]
+    });
+
+
+    await interaction.reply({
+      content: "Your request has been sent to staff.",
+      ephemeral: true
+    });
+
+  });
+
+}
 
 async start() {
   try {
