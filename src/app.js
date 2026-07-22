@@ -203,6 +203,7 @@ async setupModmail() {
     content: "You already have an open ticket.",
     ephemeral: true
   });
+      
 }
 
     const guild = this.guilds.cache.get("1522634540223561768");
@@ -223,37 +224,72 @@ async setupModmail() {
 
   permissionOverwrites: [
 
+  // Hide from everyone
+  {
+    id: guild.roles.everyone.id,
+    deny: [
+      PermissionsBitField.Flags.ViewChannel
+    ]
+  },
+
+
+  // Ticket creator can see their ticket
+  {
+    id: interaction.user.id,
+    allow: [
+      PermissionsBitField.Flags.ViewChannel,
+      PermissionsBitField.Flags.SendMessages,
+      PermissionsBitField.Flags.ReadMessageHistory
+    ]
+  },
+
+
+  // Admin tickets
+  ...(team === "admin" ? [
     {
-      id: guild.roles.everyone.id,
+      id: "1527965125879795803", // ADMIN ROLE ID
+      allow: [
+        PermissionsBitField.Flags.ViewChannel,
+        PermissionsBitField.Flags.SendMessages,
+        PermissionsBitField.Flags.ReadMessageHistory
+      ]
+    },
+
+    // Block moderators from admin tickets
+    {
+      id: "1523251341277925407", // MOD ROLE ID
       deny: [
         PermissionsBitField.Flags.ViewChannel
       ]
-    },
+    }
+  ] : []),
 
+
+
+  // Moderator tickets
+  ...(team === "moderator" ? [
     {
-      id: interaction.user.id,
+      id: "1523251341277925407", // MOD ROLE ID
       allow: [
         PermissionsBitField.Flags.ViewChannel,
-        PermissionsBitField.Flags.SendMessages
+        PermissionsBitField.Flags.SendMessages,
+        PermissionsBitField.Flags.ReadMessageHistory
       ]
     },
 
+    // Admins can still view moderator tickets
     {
-      id: "1527965125879795803",
+      id: "1527965125879795803", // ADMIN ROLE ID
       allow: [
         PermissionsBitField.Flags.ViewChannel,
-        PermissionsBitField.Flags.SendMessages
-      ]
-    },
-
-    {
-      id: "1523251341277925407",
-      allow: [
-        PermissionsBitField.Flags.ViewChannel,
-        PermissionsBitField.Flags.SendMessages
+        PermissionsBitField.Flags.SendMessages,
+        PermissionsBitField.Flags.ReadMessageHistory
       ]
     }
-  ]
+  ] : [])
+
+]
+
 });
 
 
@@ -266,9 +302,51 @@ async setupModmail() {
 
     await channel.send({
 
-  content: team === "admin"
-    ? "<@&1527965125879795803>"
-    : "<@&1523251341277925407>",
+content: team === "admin"
+? "<@&1527965125879795803>"
+: "<@&1523251341277925407>",
+
+
+allowedMentions:{
+    roles:[
+      "1527965125879795803",
+      "1523251341277925407"
+    ],
+    users:[
+      interaction.user.id
+    ]
+},
+
+
+embeds:[
+new EmbedBuilder()
+.setColor("#5865F2")
+.setTitle("📩 New Mod Mail")
+.setDescription(
+`User: <@${interaction.user.id}>
+
+Department:
+**${team === "admin" ? "Admin" : "Moderator"}**
+
+A staff member will respond soon.`
+)
+.setTimestamp()
+],
+
+
+components:[
+new ActionRowBuilder()
+.addComponents(
+new ButtonBuilder()
+.setCustomId("close_ticket")
+.setLabel("Close Ticket")
+.setEmoji("🔒")
+.setStyle(ButtonStyle.Danger)
+)
+]
+
+});
+
 
   allowedMentions: {
     roles: [
@@ -301,6 +379,59 @@ async setupModmail() {
     });
 
   });
+// CLOSE TICKET BUTTON HANDLER
+this.on("interactionCreate", async (interaction) => {
+
+  if (!interaction.isButton()) return;
+
+  if (interaction.customId !== "close_ticket") return;
+
+
+  // Check if user is staff
+  if (
+    !interaction.member.roles.cache.has("1527965125879795803") &&
+    !interaction.member.roles.cache.has("1523251341277925407")
+  ) {
+
+    return interaction.reply({
+      content: "❌ You cannot close this ticket.",
+      ephemeral: true
+    });
+
+  }
+
+
+  await interaction.reply({
+    content: "🔒 Closing ticket...",
+    ephemeral: true
+  });
+
+
+
+  // Remove ticket from active tickets
+  for (const [userId, channelId] of this.tickets) {
+
+    if (channelId === interaction.channel.id) {
+
+      this.tickets.delete(userId);
+
+      break;
+
+    }
+
+  }
+
+
+
+  // Delete channel after 3 seconds
+  setTimeout(() => {
+
+    interaction.channel.delete("Ticket closed");
+
+  }, 3000);
+
+
+});
 
 }
 
