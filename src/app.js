@@ -348,30 +348,6 @@ new ButtonBuilder()
 });
 
 
-  allowedMentions: {
-    roles: [
-      "1527965125879795803",
-      "1523251341277925407"
-    ],
-    users: [
-      interaction.user.id
-    ]
-  },
-
-  embeds: [
-    new EmbedBuilder()
-      .setColor("#5865F2")
-      .setTitle("📩 New Mod Mail")
-      .setDescription(
-        `User: <@${interaction.user.id}>\n` +
-        `Department: **${team === "admin" ? "Admin" : "Moderator"}**\n\n` +
-        `A staff member should respond to this ticket.`
-      )
-      .setTimestamp()
-  ]
-});
-
-
 
     await interaction.reply({
       content: "Your request has been sent to staff.",
