@@ -81,7 +81,7 @@ try {
         await channel.send({
             embeds: [
                 new EmbedBuilder()
-                    .setColor("#5865F2")
+                    .setColor("#F2530A")
                     .setAuthor({
                         name: message.author.tag,
                         iconURL: message.author.displayAvatarURL()
