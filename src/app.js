@@ -45,6 +45,8 @@ class TitanBot extends Client {
     this.db = null;
     this.rest = new REST({ version: '10' }).setToken(config.bot.token);
     this.on("messageCreate", async (message) => {
+  console.log("MESSAGE RECEIVED:", message.author.tag, message.content);
+
   if (message.author.bot) return;
   if (message.guild) return;
 
