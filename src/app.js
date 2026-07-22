@@ -141,6 +141,41 @@ Select a team below to contact the staff`
 
 });
 
+    this.on("messageCreate", async (message) => {
+    if (message.author.bot) return;
+
+    if (!message.guild) return;
+
+    if (!message.channel.name.startsWith("modmail-")) return;
+
+    const userId = [...this.tickets.entries()]
+    .find(([id, channelId]) => channelId === message.channel.id)?.[0];
+
+if (!userId) return;
+
+
+try {
+    const user = await this.users.fetch(userId);
+
+    await user.send({
+        embeds: [
+            new EmbedBuilder()
+                .setColor("#57F287")
+                .setAuthor({
+                    name: message.author.tag,
+                    iconURL: message.author.displayAvatarURL()
+                })
+                .setDescription(message.content)
+                .setTimestamp()
+        ]
+    });
+
+} catch (error) {
+    logger.error("Failed sending modmail reply to user:", error);
+}
+
+});
+
 
 } // <-- this closes constructor()
 
