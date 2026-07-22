@@ -62,6 +62,29 @@ this.db = null;
 
   // Only handle DMs
   if (message.channel.type !== ChannelType.DM) return;
+      
+      // User already has an open ticket
+if (this.tickets.has(message.author.id)) {
+    const channelId = this.tickets.get(message.author.id);
+    const channel = await this.channels.fetch(channelId);
+
+    if (channel) {
+        await channel.send({
+            embeds: [
+                new EmbedBuilder()
+                    .setColor("#5865F2")
+                    .setAuthor({
+                        name: message.author.tag,
+                        iconURL: message.author.displayAvatarURL()
+                    })
+                    .setDescription(message.content)
+                    .setTimestamp()
+            ]
+        });
+    }
+
+    return;
+}
 
 
   const embed = new EmbedBuilder()
