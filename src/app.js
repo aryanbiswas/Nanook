@@ -44,7 +44,28 @@ class TitanBot extends Client {
     this.cooldowns = new Collection();
     this.db = null;
     this.rest = new REST({ version: '10' }).setToken(config.bot.token);
+    this.on("messageCreate", async (message) => {
+  if (message.author.bot) return;
+  if (message.guild) return;
+
+  const channel = await this.channels.fetch("1529351905040662578");
+
+  await channel.send({
+    content:
+      `📩 **New DM**\n` +
+      `**User:** ${message.author.tag} (${message.author.id})\n\n` +
+      `${message.content || "*No text message*"}`
+  });
+
+  if (message.attachments.size > 0) {
+    message.attachments.forEach(async (attachment) => {
+      await channel.send(attachment.url);
+    });
   }
+
+  await message.reply("Your message has been received.");
+});
+
 
   async start() {
     try {
