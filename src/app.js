@@ -105,7 +105,17 @@ Select a team below to contact the staff`
     ]);
 
 
+  try {
   await message.channel.send({
+    embeds: [embed],
+    components: [
+      new ActionRowBuilder().addComponents(menu)
+    ]
+  });
+} catch(error) {
+  logger.error("Failed sending modmail menu:", error);
+}
+
     embeds: [embed],
     components: [
       new ActionRowBuilder().addComponents(menu)
@@ -126,6 +136,13 @@ async setupModmail() {
 
 
     const team = interaction.values[0];
+    
+    if (this.tickets.has(interaction.user.id)) {
+  return interaction.reply({
+    content: "You already have an open ticket.",
+    ephemeral: true
+  });
+}
 
     const guild = this.guilds.cache.get("1522634540223561768");
 
@@ -139,44 +156,44 @@ async setupModmail() {
 
 
     const channel = await guild.channels.create({
-      name: `modmail-${interaction.user.username}`,
-      type: ChannelType.GuildText,
+  name: `modmail-${interaction.user.username}`,
+  type: ChannelType.GuildText,
+  parent: "1523735590535958618", // Your category ID here
 
-      permissionOverwrites: [
-  {
-    id: guild.roles.everyone.id,
-    deny: [
-      PermissionsBitField.Flags.ViewChannel
-    ]
-  },
+  permissionOverwrites: [
 
-  // User who opened the ticket
-  {
-    id: interaction.user.id,
-    allow: [
-      PermissionsBitField.Flags.ViewChannel,
-      PermissionsBitField.Flags.SendMessages
-    ]
-  },
+    {
+      id: guild.roles.everyone.id,
+      deny: [
+        PermissionsBitField.Flags.ViewChannel
+      ]
+    },
 
-  // Admins
-  {
-    id: "1527965125879795803",
-    allow: [
-      PermissionsBitField.Flags.ViewChannel,
-      PermissionsBitField.Flags.SendMessages
-    ]
-  },
+    {
+      id: interaction.user.id,
+      allow: [
+        PermissionsBitField.Flags.ViewChannel,
+        PermissionsBitField.Flags.SendMessages
+      ]
+    },
 
-  // Moderators
-  {
-    id: "1523251341277925407",
-    allow: [
-      PermissionsBitField.Flags.ViewChannel,
-      PermissionsBitField.Flags.SendMessages
-    ]
-  }
-]
+    {
+      id: "1527965125879795803",
+      allow: [
+        PermissionsBitField.Flags.ViewChannel,
+        PermissionsBitField.Flags.SendMessages
+      ]
+    },
+
+    {
+      id: "1523251341277925407",
+      allow: [
+        PermissionsBitField.Flags.ViewChannel,
+        PermissionsBitField.Flags.SendMessages
+      ]
+    }
+  ]
+});
 
 
 
